@@ -1,0 +1,20 @@
+# Company EOS data (created by setup.sh init)
+# Each company's fork commits their own data/ — upstream stays clean
+data/
+
+# Personal user config
+.ceos-user.yaml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node artifacts (in case anyone adds tooling)
+node_modules/
