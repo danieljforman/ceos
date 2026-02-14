@@ -1,0 +1,206 @@
+---
+name: ceos-rocks
+description: Use when setting, tracking, or scoring quarterly Rocks
+---
+
+# ceos-rocks
+
+Manage quarterly Rocks — the 3-7 most important priorities for the next 90 days. Each Rock has one owner, a measurable outcome, and a due date at quarter end.
+
+## When to Use
+
+- "Set rocks for this quarter" or "let's plan our quarterly priorities"
+- "Rock status" or "how are our rocks tracking?"
+- "Score rocks" or "end of quarter review"
+- "Create a rock" or "add a new rock for [person]"
+- "What rocks does [person] own?"
+- Any quarterly planning or review conversation
+
+## Context
+
+### Finding the CEOS Repository
+
+Search upward from the current directory for the `.ceos` marker file. This file marks the root of the CEOS repository.
+
+If `.ceos` is not found, stop and tell the user: "Not in a CEOS repository. Clone your CEOS repo and run setup.sh first."
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `data/rocks/QUARTER/` | Rock files for each quarter (e.g., `data/rocks/2026-Q1/`) |
+| `data/vision.md` | V/TO document (1-Year Plan for alignment checks) |
+| `templates/rock.md` | Template for creating new Rock files |
+
+### Rock File Format
+
+Each Rock is a markdown file with YAML frontmatter:
+
+```yaml
+id: rock-001
+title: "Launch Beta Program"
+owner: "brad"
+quarter: "2026-Q1"
+status: on_track       # on_track | off_track | complete | dropped
+created: "2026-01-02"
+due: "2026-03-31"
+```
+
+**Status values:**
+- `on_track` — progressing as expected
+- `off_track` — behind or at risk
+- `complete` — done (set during end-of-quarter scoring)
+- `dropped` — no longer a priority (set during end-of-quarter scoring)
+
+**File naming:** `rock-NNN-slug.md` where NNN is a zero-padded ID and slug is the title slugified (lowercase, hyphens, no special chars).
+
+### Quarter Format
+
+Quarters follow `YYYY-QN` format: `2026-Q1`, `2026-Q2`, `2026-Q3`, `2026-Q4`.
+
+To determine the current quarter from today's date:
+- Jan-Mar = Q1, Apr-Jun = Q2, Jul-Sep = Q3, Oct-Dec = Q4
+
+## Process
+
+### Mode: Setting Rocks
+
+Use when creating new Rocks at the start of a quarter.
+
+#### Step 1: Determine the Quarter
+
+Check if the user specified a quarter. If not, use the current quarter. If creating Rocks for a past quarter, warn: "That quarter has already started/ended. Continue anyway?"
+
+Create the quarter directory if it doesn't exist: `data/rocks/YYYY-QN/`
+
+#### Step 2: Review Context
+
+Before creating Rocks, read and briefly summarize:
+- The **1-Year Plan** from `data/vision.md` (what are we trying to achieve this year?)
+- Any **existing Rocks** for this quarter (avoid duplicates)
+
+#### Step 3: Walk Through Each Rock
+
+For each Rock, collect:
+
+1. **Title** — short, specific description (e.g., "Launch Beta Program")
+2. **Owner** — one person (Rocks are never shared)
+3. **Measurable outcome** — what does "done" look like?
+4. **Milestones** — 2-4 checkpoints toward completion
+
+#### Step 4: Validate
+
+- **3-7 Rocks per person.** If someone has fewer than 3, ask if they should own more. If more than 7, flag: "Too many Rocks for [person]. EOS recommends 3-7. Which ones are the real priorities?"
+- **Alignment check.** Does each Rock connect to a 1-Year Plan goal? Flag any that don't.
+- **Due date.** Set to the last day of the quarter.
+
+#### Step 5: Generate the ID
+
+Read existing Rock files in the quarter directory. Find the highest `rock-NNN` ID and increment. If no files exist, start at `rock-001`.
+
+#### Step 6: Write the File
+
+Use `templates/rock.md` as the template. Substitute:
+- Frontmatter fields (id, title, owner, quarter, status=on_track, created=today, due=quarter-end)
+- Body sections (measurable outcome, milestones)
+
+Write to `data/rocks/YYYY-QN/rock-NNN-slug.md`.
+
+Show the user the complete file before writing. Ask: "Create this Rock?"
+
+#### Step 7: Repeat or Finish
+
+Ask: "Create another Rock, or are we done for now?"
+
+When finished, display a summary table of all Rocks for the quarter:
+
+| Rock | Owner | Due |
+|------|-------|-----|
+| Launch Beta Program | brad | 2026-03-31 |
+| Hire VP Sales | daniel | 2026-03-31 |
+
+---
+
+### Mode: Tracking Rocks
+
+Use for weekly or ad-hoc status checks.
+
+#### Step 1: Read All Rocks
+
+Read all Rock files in `data/rocks/[current-quarter]/`. Parse the frontmatter for status.
+
+#### Step 2: Display Status
+
+Show a status table:
+
+| Rock | Owner | Status | Notes |
+|------|-------|--------|-------|
+| Launch Beta Program | brad | on_track | 2/3 milestones done |
+| Hire VP Sales | daniel | off_track | No candidates yet |
+
+For each Rock, check milestones (how many are checked off?) and note the last entry in Notes.
+
+#### Step 3: Update Status
+
+If a Rock's status needs to change:
+1. Show the current status
+2. Ask what the new status should be (on_track or off_track)
+3. Show the diff in the frontmatter
+4. Ask for approval before writing
+5. Add a dated note to the Notes section
+
+---
+
+### Mode: Scoring Rocks (End of Quarter)
+
+Use at the end of a quarter for the completion review.
+
+#### Step 1: Load All Rocks
+
+Read all Rock files in `data/rocks/[quarter]/`.
+
+#### Step 2: Score Each Rock
+
+For each Rock, ask: **"Complete or incomplete?"**
+
+- EOS scoring is binary. No partial credit. The measurable outcome was either achieved or it wasn't.
+- Update status to `complete` or `dropped` (if the Rock was abandoned or deprioritized)
+- A Rock that was worked on but not finished gets `dropped` — it can become a new Rock next quarter
+
+#### Step 3: Show the diff for each status change, ask for approval.
+
+#### Step 4: Summary
+
+Display the quarter scorecard:
+
+```
+Q1 2026 Rock Scorecard
+━━━━━━━━━━━━━━━━━━━━━━
+Complete: 4/6 (67%)
+Target: 80%+
+
+✓ Launch Beta Program (brad)
+✓ Hire VP Sales (daniel)
+✓ Implement CRM (daniel)
+✗ Redesign Onboarding (brad) — dropped
+✓ ISO Certification (sarah)
+✗ Partner Program (brad) — dropped
+```
+
+If completion rate is below 80%, flag it: "Below the 80% target. Consider: Were Rocks too ambitious, or were there execution issues? This is a good topic for the next L10."
+
+## Output Format
+
+**Setting:** Show each Rock file before writing. End with a summary table.
+**Tracking:** Status table with milestone progress.
+**Scoring:** Quarter scorecard with completion rate.
+
+## Guardrails
+
+- **Always show diff before writing.** Never modify a Rock file without showing the change and getting approval.
+- **One owner per Rock.** If the user tries to assign a Rock to multiple people, explain that EOS Rocks have one owner. Suggest splitting into separate Rocks.
+- **3-7 per person.** Warn (don't block) if someone is outside this range.
+- **Binary scoring only.** Don't allow "partial" or percentage-based scoring. Complete or dropped.
+- **Respect quarter boundaries.** Rocks in `data/rocks/2026-Q1/` belong to Q1. Don't move them between quarters — create new Rocks in the next quarter instead.
+- **Cross-reference V/TO.** When setting Rocks, check alignment with the 1-Year Plan from `data/vision.md`. Use `ceos-vto` if deeper vision review is needed.
+- **ID uniqueness.** Always check existing files before assigning an ID to avoid collisions.
